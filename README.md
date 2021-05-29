@@ -30,7 +30,7 @@ Then the algorithm performs a second scheduling, whereby the new job is
 "combined" with the already running or waiting job, and this new "super job" 
 is scheduled again if possible.
 
-For example, imagine a system with two dual core servers and one quad core 
+For example, imagine a system with two dual-core servers and one quad core 
 server. A job requiring two cores is already running on the first server.
 
 Server A - 0 / 2 core available <br>

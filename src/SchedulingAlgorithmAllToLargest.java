@@ -4,6 +4,7 @@ public class SchedulingAlgorithmAllToLargest implements SchedulingAlgorithm {
 
     @Override
     public void makeSchedulingDecision(Job job) {
+        Protocol protocol = Protocol.getInstanceOf();
 
         // Find largest server
         int largestCoreCount = 0;

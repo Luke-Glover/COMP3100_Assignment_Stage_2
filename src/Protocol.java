@@ -109,10 +109,10 @@ public class Protocol {
                     }
                 }
 
-                ConcreteServer server = null;
+                Server server = null;
                 for (Object obj : args) {
-                    if (obj instanceof ConcreteServer) {
-                        server = (ConcreteServer) obj;
+                    if (obj instanceof Server) {
+                        server = (Server) obj;
                         break;
                     }
                 }

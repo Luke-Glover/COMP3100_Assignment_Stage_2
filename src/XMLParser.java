@@ -30,6 +30,7 @@ public class XMLParser {
             XPathExpression xPathExp = xPath.compile("//system/servers/server[@type]");
             NodeList nodes = (NodeList) xPathExp.evaluate(document, XPathConstants.NODESET);
 
+            Protocol protocol = Protocol.getInstanceOf();
             for (int temp = 0; temp < nodes.getLength(); temp++) {
 
                 Node node = nodes.item(temp);
@@ -42,15 +43,17 @@ public class XMLParser {
                 int memory = Integer.parseInt(node.getAttributes().getNamedItem("memory").getNodeValue());
                 int disk = Integer.parseInt(node.getAttributes().getNamedItem("disk").getNodeValue());
 
-                AbstractServer serverType = new AbstractServer();
-                serverType.type = type;
-                serverType.limit = limit;
-                serverType.bootup = bootupTime;
-                serverType.rate = hourlyRate;
-                serverType.core = coreCount;
-                serverType.memory = memory;
-                serverType.disk = disk;
+                for (int i = 0; i < limit; i++) {
+                    Server newServer = new Server();
+                    newServer.type = type;
+                    newServer.bootup = bootupTime;
+                    newServer.rate = hourlyRate;
+                    newServer.core = coreCount;
+                    newServer.memory = memory;
+                    newServer.disk = disk;
 
+                    protocol.globalServerList.add(newServer);
+                }
             }
 
         } catch (FileNotFoundException e) {
