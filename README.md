@@ -2,7 +2,8 @@
 
 This project is a Java implementation of the client side simulator of DS-Sim.
 
-##Usage
+## Usage
+
 java Client [ -v ] [ -d ] [ -c CONFIGURATION_PATH ] [ -ip IP_ADDRESS] [ -port PORT_NUMBER] [ -a ALGORITHM_NAME ]
 
 -v enables a verbose mode, which prints output matching the reference implementation of DS-Sim client.
@@ -17,8 +18,10 @@ java Client [ -v ] [ -d ] [ -c CONFIGURATION_PATH ] [ -ip IP_ADDRESS] [ -port PO
 
 -port is the port that DS-Sim server is listening on. The default is 50000.
 
-##Algorithms
-###"Perfect" Fit Algorithm
+## Algorithms
+
+### "Perfect" Fit Algorithm
+
 This version of the client implements an efficiency optimising scheduling 
 algorithm. The algorithm performs a preliminary scheduling decision whereby 
 a job is assigned to the smallest server that will fit the job (this is 
