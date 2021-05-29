@@ -1,5 +1,3 @@
-import ProtocolObject.Job;
-
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -79,28 +77,63 @@ public class ClientMain {
         }
 
 
-        // Create necessary objects
-        Protocol protocol = new Protocol(remoteConnection);
-        protocol.sendMessage("HELO");
+        // Set scheduling algorithm
+        SchedulingAlgorithm algorithm;
+        switch (algorithmString) {
+            case "PF" -> {
+                algorithm = new SchedulingAlgorithmPerfectFit();
+            }
+            default -> {
+                algorithm = new SchedulingAlgorithmAllToLargest();
+            }
+        }
 
+
+        // Create necessary objects and send first message
+        ProtocolState state = ProtocolState.HANDSHAKING;
+        Protocol protocol = new Protocol(remoteConnection, algorithm);
+        protocol.sendMessage("HELO");
 
         // Main event loop
         while (true) {
 
-            String receivedMessage = "";
-            if (remoteConnection.readReady()) {
-                receivedMessage = remoteConnection.readString();
-            }
-            if (!receivedMessage.equals("")) {
-                try {
-                    protocol.parseMessage(receivedMessage);
-                } catch (UnrecognisedCommandException | InvalidCommandException e) {
-                    System.out.println("ERROR: " + e.getMessage());
+            // Blocks until a complete string has been received from the server
+            String receivedMessage = remoteConnection.readString();
+
+            switch (state) {
+                case HANDSHAKING -> {
+                    if (receivedMessage.equals("OK")) {
+                        protocol.sendMessage("AUTH");
+                        state = ProtocolState.AUTHENTICATING;
+                    } else {
+                        System.out.println("FATAL: Handshake failed. Received message " + receivedMessage);
+                        System.exit(-1);
+                    }
+                }
+
+                case AUTHENTICATING -> {
+                    if (receivedMessage.equals("OK")) {
+                        XMLParser.parse(configurationPath); // Read ds-system.xml file
+                        protocol.sendMessage("REDY");
+                        state = ProtocolState.SCHEDULING;
+                    } else {
+                        System.out.println("FATAL: Authentication failed. Received message " + receivedMessage);
+                        System.exit(-1);
+                    }
+                }
+
+                case SCHEDULING -> {
+                    try {
+                        protocol.parseMessage(receivedMessage);
+                    } catch (UnrecognisedCommandException | InvalidCommandException e) {
+                        System.out.println("ERROR: " + e.getMessage());
+                    }
+                }
+
+                case FINISHED -> {
+
                 }
             }
-
         }
-
     }
-
 }

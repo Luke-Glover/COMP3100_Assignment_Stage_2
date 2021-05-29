@@ -1,5 +1,3 @@
-package ProtocolObject;
-
 public class Job {
 
     public int id;

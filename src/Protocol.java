@@ -1,15 +1,31 @@
-import ProtocolObject.Job;
-
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class Protocol {
 
 
+    public ArrayList<Server> globalServerList = new ArrayList<>();
+    public ArrayList<Job> globalJobList = new ArrayList<>();
+
+
     private Connection connection;
+    private SchedulingAlgorithm algorithm;
 
 
-    public Protocol(Connection connection) {
+    private static Protocol instanceOf;
+
+
+    // Singleton getter method
+    public static Protocol getInstanceOf() {
+        return instanceOf;
+    }
+
+
+    // Constructor
+    public Protocol(Connection connection, SchedulingAlgorithm algorithm) {
         this.connection = connection;
+        this.algorithm = algorithm;
+        instanceOf = this;
     }
 
 
@@ -18,6 +34,10 @@ public class Protocol {
         String[] messageParts = message.split(" ");
 
         switch (messageParts[0]) {
+
+            case "OK" -> {
+
+            }
 
             case "JOBN", "JOBP" -> {
                 if (messageParts.length != 7) {
@@ -31,8 +51,9 @@ public class Protocol {
                 newJob.core         = Integer.parseInt(messageParts[4]);
                 newJob.memory       = Integer.parseInt(messageParts[5]);
                 newJob.disk         = Integer.parseInt(messageParts[6]);
+                globalJobList.add(newJob);
 
-                // TODO: Do something with the new job
+                algorithm.makeSchedulingDecision(newJob);
             }
 
             case "JCPL" -> {
@@ -64,11 +85,15 @@ public class Protocol {
             }
 
             case "AUTH" -> {
-                if (args[0] instanceof String) {
+                if (args.length > 0 && args[0] instanceof String) {
                     connection.writeString("AUTH " + args[0]);
                 } else {
                     connection.writeString("AUTH " + System.getProperty("user.name"));
                 }
+            }
+
+            case "REDY" -> {
+                connection.writeString("REDY");
             }
 
             case "GETS" -> {
@@ -76,7 +101,22 @@ public class Protocol {
             }
 
             case "SCHD" -> {
+                Job job = null;
+                for (Object obj : args) {
+                    if (obj instanceof Job) {
+                        job = (Job) obj;
+                        break;
+                    }
+                }
 
+                ConcreteServer server = null;
+                for (Object obj : args) {
+                    if (obj instanceof ConcreteServer) {
+                        server = (ConcreteServer) obj;
+                        break;
+                    }
+                }
+                connection.writeString("SCHD " + job.id + " " + server.type + " " + server.id);
             }
 
         }
