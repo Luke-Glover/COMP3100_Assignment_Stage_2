@@ -3,6 +3,16 @@ import java.util.ArrayList;
 
 public class Server {
 
+    public enum State {
+        INACTIVE,
+        BOOTING,
+        IDLE,
+        ACTIVE,
+        UNAVAILABLE
+    }
+
+    public State state = State.INACTIVE;
+
     public int id;
     public String type;
     public float rate;
@@ -11,33 +21,39 @@ public class Server {
     public int memory;
     public int disk ;
 
-    public ArrayList<Job> localRunningJobsList = new ArrayList<>();
-    public ArrayList<Job> localQueuedJobsList = new ArrayList<>();
+    public ArrayList<Job> localJobsList = new ArrayList<>();
 
-    public boolean started = false;
+    public int getAvailableCore() {
+        int coreUsage = 0;
+        for (Job job : localJobsList) {
+            if (job.state == Job.State.RUNNING) {
+                coreUsage += job.core;
+            }
+        }
+        return core - coreUsage;
+    }
 
     public void scheduleJob(Job job) {
-        Protocol p = Protocol.getInstanceOf();
+        job.assignTo(this);
+        localJobsList.add(job);
 
-        if (!started) {
-            startServer();
+        if (this.getAvailableCore() > job.core) {
+            job.state = Job.State.RUNNING;
+        } else {
+            job.state = Job.State.QUEUED;
         }
 
+        Protocol protocol = Protocol.getInstanceOf();
         try {
-            p.sendMessage("SCHD", job, this);
+            protocol.sendMessage("SCHD", job, this);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
-    public void startServer() {
-        Protocol p = Protocol.getInstanceOf();
-
-        if (!started) {
-            this.id = p.globalServerList.indexOf(this);
-        }
-        started = true;
+    public void completeJob(Job job) {
+        job.state = Job.State.COMPLETED;
+        localJobsList.remove(job);
     }
 
 }

@@ -52,7 +52,7 @@ public class XMLParser {
                     newServer.memory = memory;
                     newServer.disk = disk;
 
-                    protocol.globalServerList.add(newServer);
+                    SystemState.addServer(newServer);
                 }
             }
 
