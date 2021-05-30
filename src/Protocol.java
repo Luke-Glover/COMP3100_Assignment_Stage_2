@@ -106,7 +106,12 @@ public class Protocol {
                     }
 
                     case "NONE" -> {
-                        System.exit(0);
+                        try {
+                            sendMessage("QUIT");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        state = State.FINISHING;
                     }
 
                     default -> {
@@ -117,6 +122,13 @@ public class Protocol {
 
             }
 
+            case FINISHING -> {
+                switch (messageParts[0]) {
+                    case "QUIT" -> {
+                        System.exit(0);
+                    }
+                }
+            }
         }
     }
 
@@ -163,6 +175,10 @@ public class Protocol {
                 }
 
                 connection.writeString("SCHD " + job.id + " " + server.type + " " + server.id);
+            }
+
+            case "QUIT" -> {
+                connection.writeString("QUIT");
             }
 
         }

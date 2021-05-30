@@ -1,5 +1,6 @@
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class SystemState {
 
@@ -40,7 +41,20 @@ public class SystemState {
     }
 
     public static ArrayList<Server> getServers() {
-        return (ArrayList<Server>) globalServerList.clone();
+        ArrayList<Server> tempList = (ArrayList<Server>) globalServerList.clone();
+        tempList.sort(new Comparator<Server>() {
+            @Override
+            public int compare(Server o1, Server o2) {
+                if (o1.core > o2.core) {
+                    return 1;
+                } else if (o2.core > o1.core) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }
+        });
+        return tempList;
     }
 
     public static ArrayList<Server> getServersByType(String type) {
