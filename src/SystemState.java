@@ -68,6 +68,13 @@ public class SystemState {
     }
 
     public static void addServer(Server server) {
+        int i = 0;
+        for (Server server1 : globalServerList) {
+            if (server.type.equals(server1.type)) {
+                i++;
+            }
+        }
+        server.id = i;
         globalServerList.add(server);
     }
 

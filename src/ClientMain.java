@@ -81,16 +81,22 @@ public class ClientMain {
         SchedulingAlgorithm algorithm;
         switch (algorithmString) {
             case "PF" -> {
+                if (debugMode) {
+                    System.out.println("USING: BestFit w/ Rescheduling");
+                }
                 algorithm = new SchedulingAlgorithmPerfectFit();
             }
             default -> {
+                if (debugMode) {
+                    System.out.println("USING: All to largest");
+                }
                 algorithm = new SchedulingAlgorithmAllToLargest();
             }
         }
 
 
         // Create necessary objects and send first message
-        Protocol protocol = new Protocol(remoteConnection);
+        Protocol protocol = new Protocol(remoteConnection, algorithm);
         protocol.sendMessage("HELO");
 
 
@@ -107,9 +113,10 @@ public class ClientMain {
                 System.out.println("ERROR: " + e.getMessage());
             }
 
-            // Call the algorithm to make a scheduling decision
-            if (SystemState.getJobsByState(Job.State.SUBMITTED).size() > 0) {
-                algorithm.makeSchedulingDecision();
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }

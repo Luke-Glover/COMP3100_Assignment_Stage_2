@@ -1,39 +1,69 @@
+import java.io.IOException;
 import java.util.*;
 
 public class SchedulingAlgorithmPerfectFit implements SchedulingAlgorithm {
 
-    Map<Server, Float> scores = new HashMap<Server, Float>();
-
     @Override
-    public void makeSchedulingDecision() {
-        Protocol protocol = Protocol.getInstanceOf();
+    public void schedule() {
 
-        ArrayList<Job> jobs = SystemState.getJobsByState(Job.State.SUBMITTED);
-        Job job = jobs.get(0);
+        ArrayList<Server> sortedServers = SystemState.getServers();
+        sortedServers.sort(new Comparator<Server>() {
+            @Override
+            public int compare(Server o1, Server o2) {
+                return o1.core - o2.core;
+            }
+        });
 
-        // Find server that gives best score (cpu utilisation closest to 100%) (score closer to 0)
-        float bestScore = 1.0f;
-        Server bestServer = null;
-        for (Server server : SystemState.getServers()) {
-            float score = score(server.getAvailableCore(), job.core);
 
-            if (score == 0f) {
-                bestScore = 0f;
-                bestServer = server;
-                break;
-            } else if (score > 0 && score < bestScore) {
-                bestScore = score;
-                bestServer = server;
+        // Search for server that can run job immediately
+        for (Job job : SystemState.getJobsByState(Job.State.SUBMITTED)) {
+            for (Server candidate : sortedServers) {
+                if (candidate.getAvailableCore() >= job.core
+                        && candidate.memory >= job.memory
+                        && candidate.disk >= job.disk) {
+                    candidate.scheduleJob(job);
+                    return;
+                }
             }
 
-            scores.put(server, score);
+            // If no server has capacity to run immediately...
+            for (Server candidate : sortedServers) {
+                if (candidate.core >= job.core
+                        && candidate.memory >= job.memory
+                        && candidate.disk >= job.disk) {
+                    candidate.scheduleJob(job);
+                    return;
+                }
+            }
+        }
+    }
+
+    public void reschedule() {
+        ArrayList<Server> sortedServers = SystemState.getServers();
+        sortedServers.sort(new Comparator<Server>() {
+            @Override
+            public int compare(Server o1, Server o2) {
+                return o1.core - o2.core;
+            }
+        });
+
+        for (Job job : SystemState.getJobsByState(Job.State.QUEUED)) {
+            for (Server candidate : sortedServers) {
+                if (candidate.getAvailableCore() >= job.core && !candidate.equals(job.getAssignedServer())) {
+                    candidate.migrateJob(job);
+                    return;
+                }
+            }
         }
 
-        if (bestScore == 0f) {
-            bestServer.scheduleJob(job);
-        } else {
-            bestServer.scheduleJob(job);
+        Protocol protocol = Protocol.getInstanceOf();
+        try {
+            protocol.sendMessage("REDY");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
+
     }
 
     private float score(int serverCore, int jobCore) {

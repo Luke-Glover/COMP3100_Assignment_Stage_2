@@ -37,7 +37,7 @@ public class Server {
         job.assignTo(this);
         localJobsList.add(job);
 
-        if (this.getAvailableCore() > job.core) {
+        if (this.getAvailableCore() >= job.core) {
             job.state = Job.State.RUNNING;
         } else {
             job.state = Job.State.QUEUED;
@@ -51,9 +51,42 @@ public class Server {
         }
     }
 
+    public void removeJob(Job job) {
+        localJobsList.remove(job);
+    }
+
+    public void migrateJob(Job job) {
+
+        Server oldServer = job.getAssignedServer();
+        oldServer.removeJob(job);
+
+        job.assignTo(this);
+
+        if (this.getAvailableCore() > job.core) {
+            job.state = Job.State.RUNNING;
+        } else {
+            job.state = Job.State.QUEUED;
+        }
+
+        this.localJobsList.add(job);
+
+        Protocol protocol = Protocol.getInstanceOf();
+        try {
+            protocol.sendMessage("MIGJ", job, oldServer, this);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void completeJob(Job job) {
         job.state = Job.State.COMPLETED;
         localJobsList.remove(job);
+
+        for (Job queuedJob : localJobsList) {
+            if (queuedJob.core <= getAvailableCore()) {
+                queuedJob.state = Job.State.RUNNING;
+            }
+        }
     }
 
 }

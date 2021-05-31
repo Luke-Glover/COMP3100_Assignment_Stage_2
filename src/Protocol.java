@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.util.AbstractList;
 
 public class Protocol {
 
@@ -14,6 +15,7 @@ public class Protocol {
     public State state = State.HANDHAKING;
 
     private Connection connection;
+    private SchedulingAlgorithm algorithm;
 
     private static Protocol instanceOf;
 
@@ -25,8 +27,9 @@ public class Protocol {
 
 
     // Constructor
-    public Protocol(Connection connection) {
+    public Protocol(Connection connection, SchedulingAlgorithm algorithm) {
         this.connection = connection;
+        this.algorithm = algorithm;
         instanceOf = this;
     }
 
@@ -89,15 +92,26 @@ public class Protocol {
                         newJob.disk = Integer.parseInt(messageParts[6]);
                         SystemState.submitJob(newJob);
 
+                        // Call the algorithm to make a scheduling decision
+                        if (SystemState.getJobsByState(Job.State.SUBMITTED).size() > 0) {
+                            algorithm.schedule();
+                        }
+
                     }
 
                     case "JCPL" -> {
                         Job completedJob = SystemState.getJobById(Integer.parseInt(messageParts[2]));
                         completedJob.getAssignedServer().completeJob(completedJob);
-                        try {
-                            sendMessage("REDY");
-                        } catch (IOException e) {
-                            e.printStackTrace();
+
+                        // Call the algorithm to make a scheduling decision
+                        if (SystemState.getJobsByState(Job.State.QUEUED).size() > 0) {
+                            algorithm.reschedule();
+                        } else {
+                            try {
+                                sendMessage("REDY");
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
 
@@ -112,6 +126,18 @@ public class Protocol {
                             e.printStackTrace();
                         }
                         state = State.FINISHING;
+                    }
+
+                    case "ERR:" -> {
+                        if (ClientMain.debugMode) {
+                            System.out.println(message);
+                            System.out.println("ERROR: Internal state may be inconsistent");
+                        }
+                        try {
+                            sendMessage("REDY");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
 
                     default -> {
@@ -175,6 +201,32 @@ public class Protocol {
                 }
 
                 connection.writeString("SCHD " + job.id + " " + server.type + " " + server.id);
+            }
+
+            case "MIGJ" -> {
+                // Old server must come first
+                Job job = null;
+                for (Object obj : args) {
+                    if (obj instanceof Job) {
+                        job = (Job) obj;
+                        break;
+                    }
+                }
+
+                Server servers[] = new Server[2];
+                int i = 0;
+                for (Object obj : args) {
+                    if (obj instanceof Server) {
+                        servers[i] = (Server) obj;
+                        i++;
+                        if (i == 2) {
+                            break;
+                        }
+                    }
+                }
+
+                connection.writeString("MIGJ " + job.id + " " + servers[0].type + " " + servers[0].id
+                        + " " + servers[1].type + " " + servers[1].id);
             }
 
             case "QUIT" -> {

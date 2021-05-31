@@ -1,5 +1,7 @@
 public interface SchedulingAlgorithm {
 
-    void makeSchedulingDecision();
+    void schedule();
+
+    void reschedule();
 
 }

@@ -3,7 +3,7 @@ import java.io.IOException;
 public class SchedulingAlgorithmAllToLargest implements SchedulingAlgorithm {
 
     @Override
-    public void makeSchedulingDecision() {
+    public void schedule() {
         Protocol protocol = Protocol.getInstanceOf();
 
         // Find largest server
@@ -28,6 +28,11 @@ public class SchedulingAlgorithmAllToLargest implements SchedulingAlgorithm {
         Job job = SystemState.getJobsByState(Job.State.SUBMITTED).get(0);
         largestServer.scheduleJob(job);
 
+    }
+
+    @Override
+    public void reschedule() {
+        ;
     }
 
 }
