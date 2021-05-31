@@ -228,6 +228,18 @@ public class Protocol {
                         + " " + servers[1].type + " " + servers[1].id);
             }
 
+            case "TERM" -> {
+                Server server = null;
+                for (Object obj : args) {
+                    if (obj instanceof Server) {
+                        server = (Server) obj;
+                        break;
+                    }
+                }
+
+                connection.writeString("TERM " + server.type + " " + server.id);
+            }
+
             case "QUIT" -> {
                 connection.writeString("QUIT");
             }

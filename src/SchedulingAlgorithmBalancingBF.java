@@ -96,11 +96,12 @@ public class SchedulingAlgorithmBalancingBF implements SchedulingAlgorithm {
 
         if (bestServer != null) {
             bestServer.migrateJob(job);
+            return;
         }
 
         // Attempt to reschedule jobs that are running alone
         // and not fully utilising a server
-        bestScore = 0;
+        bestScore = Integer.MAX_VALUE;
         bestServer = null;
         for (Job runningJob : SystemState.getJobsByState(Job.State.RUNNING)) {
             if (runningJob.getAssignedServer().localJobsList.size() == 1) {

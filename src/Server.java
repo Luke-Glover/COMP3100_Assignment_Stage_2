@@ -53,6 +53,14 @@ public class Server {
 
     public void removeJob(Job job) {
         localJobsList.remove(job);
+        if (localJobsList.size() == 0) {
+            Protocol protocol = Protocol.getInstanceOf();
+            try {
+                protocol.sendMessage("TERM", this);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void migrateJob(Job job) {
