@@ -1,5 +1,4 @@
 import java.io.IOException;
-import java.util.AbstractList;
 
 public class Protocol {
 
@@ -105,7 +104,7 @@ public class Protocol {
 
                         // Call the algorithm to make a scheduling decision
                         if (SystemState.getJobsByState(Job.State.QUEUED).size() > 0) {
-                            algorithm.reschedule();
+                            algorithm.balance();
                         } else {
                             try {
                                 sendMessage("REDY");

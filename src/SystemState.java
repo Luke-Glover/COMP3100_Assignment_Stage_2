@@ -67,6 +67,16 @@ public class SystemState {
         return serversOfType;
     }
 
+    public static ArrayList<Server> getServersByState(Server.State state) {
+        ArrayList<Server> serversOfState = new ArrayList<>();
+        for (Server candidate: globalServerList) {
+            if (candidate.state == state) {
+                serversOfState.add(candidate);
+            }
+        }
+        return serversOfState;
+    }
+
     public static void addServer(Server server) {
         int i = 0;
         for (Server server1 : globalServerList) {

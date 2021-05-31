@@ -31,7 +31,7 @@ public class SchedulingAlgorithmAllToLargest implements SchedulingAlgorithm {
     }
 
     @Override
-    public void reschedule() {
+    public void balance() {
         ;
     }
 

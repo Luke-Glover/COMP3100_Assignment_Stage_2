@@ -84,7 +84,7 @@ public class ClientMain {
                 if (debugMode) {
                     System.out.println("USING: BestFit w/ Rescheduling");
                 }
-                algorithm = new SchedulingAlgorithmPerfectFit();
+                algorithm = new SchedulingAlgorithmBalancingBF();
             }
             default -> {
                 if (debugMode) {
@@ -111,12 +111,6 @@ public class ClientMain {
                 protocol.parseMessage(receivedMessage);
             } catch (UnrecognisedCommandException | InvalidCommandException e) {
                 System.out.println("ERROR: " + e.getMessage());
-            }
-
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         }
     }

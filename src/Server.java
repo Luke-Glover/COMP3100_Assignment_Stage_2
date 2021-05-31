@@ -61,14 +61,13 @@ public class Server {
         oldServer.removeJob(job);
 
         job.assignTo(this);
+        this.localJobsList.add(job);
 
-        if (this.getAvailableCore() > job.core) {
+        if (this.getAvailableCore() >= job.core) {
             job.state = Job.State.RUNNING;
         } else {
             job.state = Job.State.QUEUED;
         }
-
-        this.localJobsList.add(job);
 
         Protocol protocol = Protocol.getInstanceOf();
         try {
